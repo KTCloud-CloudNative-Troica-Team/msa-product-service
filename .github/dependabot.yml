@@ -1,0 +1,40 @@
+# Dependabot 설정 — CVE 자동 PR + 의존성 업데이트.
+# 매주 한 번 (월요일) 확인. 최대 동시 PR 5개 (review 부담 제한).
+#
+# 정책 권장:
+# - patch 버전 (X.Y.Z의 Z): auto-merge 검토 (낮은 위험)
+# - minor 버전 (X.Y): 코드 리뷰 후 머지
+# - major 버전: 신중 검토 (breaking change 가능)
+#
+# Spring Boot BOM이 transitive 의존성 관리하므로 Dependabot이 잡는 건 주로:
+# - Spring Boot plugin/BOM 버전 자체 (3.5.13 → 3.5.14 등)
+# - Kotlin / Gradle / 명시적 override 의존성 (postgres, netty 등)
+# - GitHub Actions
+
+version: 2
+updates:
+  # Gradle dependencies (build.gradle.kts)
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "gradle"
+    commit-message:
+      prefix: "deps"
+
+  # GitHub Actions (.github/workflows/*.yml)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "ci"
