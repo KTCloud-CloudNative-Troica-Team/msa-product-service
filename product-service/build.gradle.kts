@@ -8,7 +8,7 @@ plugins {
 }
 
 object Versions {
-    const val GRPC = "1.68.1"            // io.grpc:grpc-*
+    const val GRPC = "1.75.0"            // io.grpc:grpc-* — 1.75.0 fixes CVE-2025-55163 (Netty MadeYouReset HTTP/2 DDoS)
     const val GRPC_KOTLIN = "1.4.1"      // grpc-kotlin-stub
     const val PROTOBUF = "4.34.1"        // protobuf-java/kotlin
 }
