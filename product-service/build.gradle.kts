@@ -32,7 +32,10 @@ dependencies {
     implementation("io.grpc:grpc-kotlin-stub:${Versions.GRPC_KOTLIN}")
     implementation("io.grpc:grpc-netty-shaded:${Versions.GRPC}")
 
-    runtimeOnly("org.postgresql:postgresql")
+    // postgresql 42.7.11 fixes CVE-2026-42198 (Client DoS via malicious SCRAM-SHA-256 auth).
+    // Spring Boot 3.5.14 BOM은 42.7.10 그대로 → 명시적 version override.
+    // 다음 SB patch에 42.7.11이 포함되면 version 빼고 BOM 관리로 복귀 가능.
+    runtimeOnly("org.postgresql:postgresql:42.7.11")
 }
 
 sourceSets {
