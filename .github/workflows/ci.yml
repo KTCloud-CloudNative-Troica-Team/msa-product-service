@@ -67,7 +67,7 @@ jobs:
 
       - name: Configure AWS credentials (OIDC)
         if: github.event_name == 'push' && vars.AWS_DEPLOYMENTS_ENABLED == 'true'
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/troica-gha-ecr-push
           aws-region: ${{ env.AWS_REGION }}
