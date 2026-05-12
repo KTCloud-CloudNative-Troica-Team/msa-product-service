@@ -151,7 +151,7 @@ jobs:
             applications/values/${{ env.SERVICE_NAME }}/values-prod.yaml
 
       - name: Create PR for prod
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.MANIFEST_PAT }}
           branch: bump/${{ env.SERVICE_NAME }}-prod-${{ needs.build-test.outputs.image-tag }}
