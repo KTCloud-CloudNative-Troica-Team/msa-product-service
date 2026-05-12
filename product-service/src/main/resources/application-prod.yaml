@@ -1,0 +1,10 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate    # prod은 마이그레이션으로 schema 관리, JPA는 검증만
+    show-sql: false
+
+logging:
+  level:
+    root: INFO
+    dev.ktcloud.black: INFO

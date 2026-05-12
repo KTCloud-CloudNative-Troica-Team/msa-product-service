@@ -1,0 +1,9 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update      # dev에선 schema 자동 갱신
+    show-sql: true
+
+logging:
+  level:
+    dev.ktcloud.black: DEBUG
