@@ -1,43 +1,27 @@
 # syntax=docker/dockerfile:1.7
 
-# ===== Stage 1: build =====
-# Alpine(musl libc) 대신 glibc 기반 이미지 사용.
-# 이유: protoc-gen-grpc-java가 Maven Central에서 받는 바이너리는 glibc 링크라
-# Alpine에서는 "program not found or is not executable" 에러로 generateProto 실패.
-# build stage 결과물(layered JAR)은 stage 2에서 추출되어 alpine runtime으로 옮겨지므로
-# 최종 image 크기/보안 표면은 동일.
-FROM eclipse-temurin:21-jdk AS build
-WORKDIR /app
+# R-27 (a): 호스트의 `./gradlew build`가 이미 테스트 + bootJar 완료 → Docker는
+# packaging만 담당 (~1.5분 절약). 기존 3-stage 빌드 (build → layers → runtime)
+# 에서 build stage 제거.
+#
+# 사전 조건:
+# - CI workflow (또는 로컬)에서 `./gradlew :product-service:bootJar` 또는
+#   `./gradlew build` 가 먼저 실행되어 `product-service/build/libs/*.jar`가
+#   존재해야 함. ci.yml의 build-test step이 이를 보장.
+#
+# 부가 효과:
+# - build stage가 없어서 glibc 베이스 (eclipse-temurin:21-jdk) 불필요 →
+#   alpine만 사용. protoc-gen-grpc-java도 호스트에서 실행되므로 musl 호환성
+#   이슈 (TROUBLESHOOTING §3.1) 자동 회피.
+# - GitHub Packages 인증 ARG (GPR_USER/GPR_TOKEN)도 제거 → 호스트가 처리.
 
-# Gradle wrapper + 의존성 메타만 먼저 복사 (캐시 최적화).
-COPY gradlew settings.gradle.kts build.gradle.kts gradle.properties ./
-COPY gradle gradle
-COPY product/build.gradle.kts product/
-COPY product-service/build.gradle.kts product-service/
-RUN chmod +x gradlew
-
-# GitHub Packages 인증 (common-libs 의존성 해결).
-ARG GPR_USER
-ARG GPR_TOKEN
-RUN if [ -n "$GPR_USER" ] && [ -n "$GPR_TOKEN" ]; then \
-      mkdir -p /root/.gradle && \
-      echo "gpr.user=$GPR_USER" > /root/.gradle/gradle.properties && \
-      echo "gpr.token=$GPR_TOKEN" >> /root/.gradle/gradle.properties ; \
-    fi
-RUN ./gradlew dependencies --no-daemon || true
-
-# 소스 복사 후 빌드.
-COPY product/src product/src
-COPY product-service/src product-service/src
-RUN ./gradlew :product-service:bootJar --no-daemon -x test
-
-# ===== Stage 2: extract layers =====
+# ===== Stage 1: layered jar extraction =====
 FROM eclipse-temurin:21-jre-alpine AS layers
 WORKDIR /app
-COPY --from=build /app/product-service/build/libs/*.jar app.jar
+COPY product-service/build/libs/*.jar app.jar
 RUN java -Djarmode=layertools -jar app.jar extract
 
-# ===== Stage 3: runtime =====
+# ===== Stage 2: runtime =====
 FROM eclipse-temurin:21-jre-alpine
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
