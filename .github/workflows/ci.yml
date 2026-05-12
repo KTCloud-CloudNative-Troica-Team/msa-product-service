@@ -85,9 +85,9 @@ jobs:
           push: false
           load: true
           tags: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPO }}:${{ steps.meta.outputs.tag }}
-          build-args: |
-            GPR_USER=${{ github.actor }}
-            GPR_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          # R-27 (a) 적용 후: 호스트가 빌드한 build/libs/*.jar를 Docker로 옮기는
+          # 패턴. GH Packages 인증은 호스트 ./gradlew build 단계에서 처리되므로
+          # Docker build-args 불필요.
 
       # Trivy scan
       # 주의: 2026-03-19 aquasecurity/trivy-action 공급망 사고로 0.0.1~0.34.2 태그는 모두 compromised.
