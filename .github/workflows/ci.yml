@@ -53,6 +53,22 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew build --no-daemon
 
+      # R-45 (평가 심화 (2)-1): SonarCloud 분석 + Quality Gate.
+      # - public 무료 plan 사용 (이 레포는 public).
+      # - Quality Gate 미통과(커버리지 80% 미만 / Critical 이슈 등) 시 sonar task가 fail
+      #   → CI 전체 fail. PR 코멘트는 SonarCloud GitHub App이 자동 게시함.
+      # - 활성화 절차 (AWS_DEPLOYMENTS_ENABLED 와 동일한 토글 패턴):
+      #   1) sonarcloud.io에서 GitHub Org 연결 + msa-product-service 프로젝트 import
+      #   2) SonarCloud Account → Security → Token 생성
+      #   3) GitHub Org Secret `SONAR_TOKEN` 등록 (6 polyrepo 공통)
+      #   4) GitHub Org Variable `SONARCLOUD_ENABLED=true` 등록 → 6 polyrepo 일괄 활성
+      - name: SonarCloud scan
+        if: vars.SONARCLOUD_ENABLED == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew sonar --no-daemon
+
       - name: Set image tag
         id: meta
         run: echo "tag=main-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
