@@ -10,4 +10,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
     runtimeOnly("com.h2database:h2")
+
+    // R-57: 단위 테스트 — JUnit 5 + AssertJ + Mockito
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
